@@ -19,7 +19,7 @@ More "low-level" API are also provided:
     static constexpr auto H1 = sha256::compute({'A','B'});
 
 This can be used for instance to compare user-provided passwords to a
-hard-coded one in a binary (althought this is not recommanded to do so
+hard-coded one in a binary (although this is not recommended to do so
 directly, passwords should always be salted when hashed!):
 
 .. code:: cpp
