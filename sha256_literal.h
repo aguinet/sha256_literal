@@ -156,7 +156,7 @@ u8_to_blocks_(Ar const Data)
 
 template <uint64_t BlockCount, typename Ar>
 constexpr std::enable_if_t<BlockCount == 0, std::array<BlockType, 0>>
-u8_to_blocks_(Ar const Data)
+u8_to_blocks_(Ar const __attribute__((unused)) Data)
 {
   return std::array<BlockType, 0>{};
 }
