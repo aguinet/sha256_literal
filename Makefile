@@ -1,4 +1,4 @@
-CXXFLAGS=-std=c++14
+CXXFLAGS=-std=c++14 -Wall -Wextra -O2
 
 all: tests.o example
 

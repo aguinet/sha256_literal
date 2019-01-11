@@ -90,30 +90,30 @@ sha256::HashType sha256::compute(const uint8_t* Data, const uint64_t Len)
   StateType State = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
     0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
   const uint64_t BlockCount = Len/sizeof(BlockType);
-  BlockType const* Blocks = (BlockType const*) Data;
+  BlockType Block;
   for (uint64_t i = 0; i < BlockCount; ++i) {
-    transform(State, Blocks[i]);
+    memcpy(&Block, &Data[i*sizeof(BlockType)], sizeof(BlockType));
+    transform(State, Block);
   }
   
   const uint64_t Rem = Len-BlockCount*sizeof(BlockType);
 
-  union {
-    BlockType B;
-    struct {
-      uint8_t Data[56];
-      uint64_t Length;
-    } S;
+  struct {
+    uint8_t Data[56];
+    uint64_t Length;
   } LastB;
 
-  LastB.B = {0};
-  memcpy(&LastB.S.Data[0], &Blocks[BlockCount], Rem);
-  LastB.S.Data[Rem] = 0x80;
+  memset(&LastB, 0, sizeof(LastB));
+  memcpy(&LastB.Data[0], &Data[BlockCount*sizeof(BlockType)], Rem);
+  LastB.Data[Rem] = 0x80;
   if (Rem >= 56) {
-    transform(State, LastB.B);
-    LastB.B = {0};
+    memcpy(&Block, &LastB, sizeof(BlockType));
+    transform(State, Block);
+    memset(&LastB, 0, sizeof(LastB));
   }
-  LastB.S.Length = SWAP_U64_BE(Len << 3);
-  transform(State, LastB.B);
+  LastB.Length = SWAP_U64_BE(Len << 3);
+  memcpy(&Block, &LastB, sizeof(BlockType));
+  transform(State, Block);
 
   for (uint32_t& V: State) {
     V = SWAP_U32_BE(V);

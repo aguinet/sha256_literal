@@ -56,7 +56,7 @@ static constexpr auto map(F const f, std::array<T, N> const data, Args const... 
 }
 
 template<class F, class T, class... Args>
-static constexpr auto map(F const f, std::array<T, 0> const data, Args const... args)
+static constexpr auto map(F const f, std::array<T, 0> const, Args const... args)
 {
   using RetType = decltype(f(std::declval<T>(), args...));
   return std::array<RetType, 0>{};
@@ -200,7 +200,7 @@ constexpr auto* get_array_it(std::array<T, N> const& Data)
 }
 
 template <class T>
-constexpr T* get_array_it(std::array<T, 0> const& Data)
+constexpr T* get_array_it(std::array<T, 0> const&)
 {
   // Do not use nullptr here, because it is of type "nullptr_t", and this will
   // give erros for the pointer arithmetics done in sha256.
