@@ -4,20 +4,7 @@
 #include <array>
 
 #include "sha256.h"
-
-#if !defined(__BYTE_ORDER__)
-#error "Unable to determine target architecture endianess!"
-#endif
-
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#define SWAP_U32_BE(v) __builtin_bswap32((v))
-#define SWAP_U64_BE(v) __builtin_bswap64((v))
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#define SWAP_U32_BE(v) (v)
-#define SWAP_U64_BE(v) (v)
-#else
-#error "Unsupported target architecture endianess!"
-#endif
+#include "intmem.h"
 
 static const uint32_t SHA256_K[64] = {
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
@@ -47,12 +34,12 @@ static __attribute__((always_inline)) uint32_t rotr(uint32_t const v, int off)
   return (v >> off) | (v << (32-off));
 }
 
-static __attribute__((always_inline)) void transform(StateType& S, const BlockType& data)
+static __attribute__((always_inline)) void transform(StateType& S, uint8_t const* Data)
 {
   WType W = {0};
 #pragma unroll
-  for (size_t i = 0; i < data.size(); ++i) {
-    W[i] = SWAP_U32_BE(data[i]);
+  for (size_t i = 0; i < 16; ++i) {
+    W[i] = intmem::loadu_be<uint32_t>(&Data[i*sizeof(uint32_t)]);
   }
 
   for (size_t i = 16; i < 64; ++i) {
@@ -90,36 +77,27 @@ sha256::HashType sha256::compute(const uint8_t* Data, const uint64_t Len)
   StateType State = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
     0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
   const uint64_t BlockCount = Len/sizeof(BlockType);
-  BlockType Block;
   for (uint64_t i = 0; i < BlockCount; ++i) {
-    memcpy(&Block, &Data[i*sizeof(BlockType)], sizeof(BlockType));
-    transform(State, Block);
+    transform(State, &Data[i*sizeof(BlockType)]);
   }
   
   const uint64_t Rem = Len-BlockCount*sizeof(BlockType);
 
-  struct {
-    uint8_t Data[56];
-    uint64_t Length;
-  } LastB;
-
-  memset(&LastB, 0, sizeof(LastB));
-  memcpy(&LastB.Data[0], &Data[BlockCount*sizeof(BlockType)], Rem);
-  LastB.Data[Rem] = 0x80;
+  uint8_t LastBlock[sizeof(BlockType)];
+  memset(&LastBlock, 0, sizeof(LastBlock));
+  memcpy(&LastBlock[0], &Data[BlockCount*sizeof(BlockType)], Rem);
+  LastBlock[Rem] = 0x80;
   if (Rem >= 56) {
-    memcpy(&Block, &LastB, sizeof(BlockType));
-    transform(State, Block);
-    memset(&LastB, 0, sizeof(LastB));
+    transform(State, LastBlock);
+    memset(&LastBlock, 0, sizeof(LastBlock));
   }
-  LastB.Length = SWAP_U64_BE(Len << 3);
-  memcpy(&Block, &LastB, sizeof(BlockType));
-  transform(State, Block);
+  intmem::storeu_be(&LastBlock[56], Len << 3);
+  transform(State, LastBlock);
 
-  for (uint32_t& V: State) {
-    V = SWAP_U32_BE(V);
-  }
   HashType Ret;
   static_assert(sizeof(HashType) == sizeof(StateType), "bad definition of HashType");
-  memcpy(&Ret[0], &State[0], sizeof(StateType));
+  for (size_t i = 0; i < 8; ++i) {
+    intmem::storeu_be(&Ret[i*sizeof(uint32_t)], State[i]);
+  }
   return Ret;
 }
