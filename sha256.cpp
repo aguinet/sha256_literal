@@ -6,6 +6,12 @@
 #include "sha256.h"
 #include "intmem.h"
 
+#if defined(_MSC_VER)
+#define FORCEINLINE __forceinline
+#else
+#define FORCEINLINE __attribute__((always_inline))
+#endif
+
 static const uint32_t SHA256_K[64] = {
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
   0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -29,12 +35,12 @@ using StateType = std::array<uint32_t, 8>;
 using BlockType = std::array<uint32_t, 16>;
 using WType     = std::array<uint32_t, 64>;
 
-static __attribute__((always_inline)) uint32_t rotr(uint32_t const v, int off)
+static FORCEINLINE uint32_t rotr(uint32_t const v, int off)
 {
   return (v >> off) | (v << (32-off));
 }
 
-static __attribute__((always_inline)) void transform(StateType& S, uint8_t const* Data)
+static FORCEINLINE void transform(StateType& S, uint8_t const* Data)
 {
   WType W = {0};
 #pragma unroll
@@ -56,7 +62,7 @@ static __attribute__((always_inline)) void transform(StateType& S, uint8_t const
       uint32_t s1 = rotr(InS[4], 6) ^ rotr(InS[4], 11) ^ rotr(InS[4], 25);
       uint32_t ch = (InS[4] & InS[5]) ^ ((~InS[4]) & InS[6]);
       uint32_t t1 = InS[7] + s1 + ch + SHA256_K[i] + W[i];
-      
+
       InS[7] = InS[6];
       InS[6] = InS[5];
       InS[5] = InS[4];
@@ -80,7 +86,7 @@ sha256::HashType sha256::compute(const uint8_t* Data, const uint64_t Len)
   for (uint64_t i = 0; i < BlockCount; ++i) {
     transform(State, &Data[i*sizeof(BlockType)]);
   }
-  
+
   const uint64_t Rem = Len-BlockCount*sizeof(BlockType);
 
   uint8_t LastBlock[sizeof(BlockType)];
