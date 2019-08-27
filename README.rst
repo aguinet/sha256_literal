@@ -38,3 +38,10 @@ A runtime implementation of SHA256 is also provided in ``sha256.cpp``. This
 does not respect the NIST API standards, and is only there for convience.
 
 This has been tested with clang 4.0 and GCC 6.3 under linux.
+
+Licensing
+---------
+
+This code is licensed under GPLv3, except for the QBDI project
+(https://github.com/QBDI/QBDI/) that uses it for benchmarking purpose where we
+tolerate the usage of this code under the Apache2 license.
