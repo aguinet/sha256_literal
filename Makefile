@@ -8,4 +8,4 @@ sha256.o: sha256.cpp
 tests.o: tests.cpp
 
 clean:
-	rm tests.o example
+	rm -f tests.o sha256.o example

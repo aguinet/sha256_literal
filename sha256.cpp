@@ -9,7 +9,7 @@
 #if defined(_MSC_VER)
 #define FORCEINLINE __forceinline
 #else
-#define FORCEINLINE __attribute__((always_inline))
+#define FORCEINLINE inline __attribute__((always_inline))
 #endif
 
 static const uint32_t SHA256_K[64] = {
