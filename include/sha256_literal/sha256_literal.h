@@ -156,7 +156,7 @@ u8_to_blocks_(Ar const Data)
 
 template <uint64_t BlockCount, typename Ar>
 constexpr std::enable_if_t<BlockCount == 0, std::array<BlockType, 0>>
-u8_to_blocks_(Ar const __attribute__((unused)) Data)
+u8_to_blocks_(Ar Data)
 {
   return std::array<BlockType, 0>{};
 }
@@ -300,12 +300,12 @@ static constexpr auto compute_str(char const (&Data)[N])
 
 } // sha256_literal
 
-template <typename CharT, CharT... Cs>
-static constexpr auto operator "" _sha256()
-{
-  static_assert(std::is_same<CharT, char>::value, "only support 8-bit strings");
-  const char Data[] = {Cs...};
-  return sha256_literal::compute(Data);
-}
+//template <typename CharT, CharT... Cs>
+//static constexpr auto operator "" _sha256()
+//{
+//  static_assert(std::is_same<CharT, char>::value, "only support 8-bit strings");
+//  const char Data[] = {Cs...};
+//  return sha256_literal::compute(Data);
+//}
 
 #endif

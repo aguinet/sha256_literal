@@ -1,6 +1,7 @@
 #include <cstdio>
-#include "sha256_literal.h"
-#include "sha256.h"
+#include <sha256_literal/sha256_literal.h>
+#include <sha256_literal/sha256.h>
+#include <sha256_literal/utility.h>
 
 int main(int argc, char** argv)
 {
@@ -9,7 +10,7 @@ int main(int argc, char** argv)
     return 2;
   }
   
-  static constexpr auto PasswordHash = "myverysecretpassword"_sha256;
+  static constexpr auto PasswordHash = sha256_literal::compute("myverysecretpassword");
   const char* pwd = argv[1];
   if (sha256::compute((const uint8_t*) pwd, strlen(pwd)) == PasswordHash) {
     puts("good password!");

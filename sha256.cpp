@@ -3,8 +3,8 @@
 #include <cstring>
 #include <array>
 
-#include "sha256.h"
-#include "intmem.h"
+#include <sha256_literal/sha256.h>
+#include <sha256_literal/intmem.h>
 
 #if defined(_MSC_VER)
 #define FORCEINLINE __forceinline
